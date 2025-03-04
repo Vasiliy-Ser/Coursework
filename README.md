@@ -130,15 +130,15 @@ sudo systemctl start  <сервис>
 
 ### ip адреса и пароли
 
-alb = "51.250.40.240"
-bastion_public_ip = "51.250.77.132"
-elasticsearch_private_ip = "192.168.10.34"
-grafana_public_ip = "62.84.113.149"
-kibana_public_ip = "51.250.6.24"
-prometheus_private_ip = "192.168.10.11"
-vm1_private_ip = "192.168.10.4"
-vm2_private_ip = "192.168.20.34"
+alb = "51.250.40.240"  
+bastion_public_ip = "51.250.77.132"  
+elasticsearch_private_ip = "192.168.10.34"  
+grafana_public_ip = "62.84.113.149"  
+kibana_public_ip = "51.250.6.24"  
+prometheus_private_ip = "192.168.10.11"  
+vm1_private_ip = "192.168.10.4"  
+vm2_private_ip = "192.168.20.34"  
 
 
-grafana user - admin, passwd - admin04
-kibana user - elastic, passwd - thMLifLwK-yuV+Z8Fooh
+grafana user - admin, passwd - admin04  
+kibana user - elastic, passwd - thMLifLwK-yuV+Z8Fooh  
