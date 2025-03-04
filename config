@@ -1,0 +1,42 @@
+# Bastion Host
+Host bastion
+    HostName 51.250.77.132
+    User master
+    IdentityFile /home/vm10/.ssh/id_rsa
+
+# Настройка для каждой ВМ с ProxyJump через Bastion
+Host web-server-1
+    HostName 192.168.10.4
+    User master
+    ProxyJump bastion
+    IdentityFile /home/vm10/.ssh/id_rsa
+
+Host web-server-2
+    HostName 192.168.20.34
+    User master
+    ProxyJump bastion
+    IdentityFile /home/vm10/.ssh/id_rsa
+
+Host prometheus_server
+    HostName 192.168.10.11
+    User master
+    ProxyJump bastion
+    IdentityFile /home/vm10/.ssh/id_rsa
+
+Host grafana_server
+    HostName 192.168.30.5
+    User master
+    ProxyJump bastion
+    IdentityFile /home/vm10/.ssh/id_rsa
+
+Host kibana_server 
+    HostName 192.168.30.21
+    User master
+    ProxyJump bastion
+    IdentityFile /home/vm10/.ssh/id_rsa
+
+Host elasticsearch_server
+    HostName 192.168.10.34
+    User master
+    ProxyJump bastion
+    IdentityFile /home/vm10/.ssh/id_rsa
