@@ -1,0 +1,125 @@
+---
+#- name: Установка и настройка Prometheus
+#  hosts: all
+#  become: yes
+#  tasks:
+    - name: Установка зависимостей для Prometheus
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - wget
+        - tar
+        - lsb-release
+
+    - name: Распаковка Prometheus
+      unarchive:
+        src: /tmp/prometheus-2.54.1.linux-amd64.tar.gz
+        dest: /tmp/
+        remote_src: yes
+
+    - name: Создание пользователя Prometheus без домашней директории и оболочки
+      user:
+        name: prometheus
+        shell: /bin/false
+        create_home: no
+
+    - name: Создание директорий для Prometheus
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: prometheus
+        group: prometheus
+      loop:
+        - /etc/prometheus
+        - /var/lib/prometheus
+
+    - name: Копирование бинарных файлов Prometheus в /usr/local/bin
+      copy:
+        src: "/tmp/prometheus-2.54.1.linux-amd64/{{ item }}"
+        dest: /usr/local/bin/
+        owner: prometheus
+        group: prometheus
+        mode: '0755'
+        remote_src: yes
+      loop:
+        - prometheus
+        - promtool
+
+    - name: Копирование конфигурации и связанных файлов Prometheus
+      copy:
+        src: "/tmp/prometheus-2.54.1.linux-amd64/{{ item }}"
+        dest: /etc/prometheus/
+        owner: prometheus
+        group: prometheus
+        mode: '0755'
+        remote_src: yes
+      loop:
+        - console_libraries
+        - consoles
+        - prometheus.yml
+
+    - name: Изменение прав собственности на файлы и директории Prometheus
+      command: chown -R prometheus:prometheus {{ item }}
+      loop:
+        - /etc/prometheus
+        - /var/lib/prometheus
+        - /usr/local/bin/prometheus
+        - /usr/local/bin/promtool
+
+    - name: Создание конфигурации Prometheus для Node Exporter и Nginx Log Exporter
+      copy:
+        content: |
+          global:
+            scrape_interval: 15s
+            evaluation_interval: 15s
+
+          scrape_configs:
+            - job_name: 'node_exporter'
+              static_configs:
+                - targets: 
+                    - '192.168.10.4:9100'  # IP первого веб-сервера
+                    - '192.168.20.34:9100'  # IP второго веб-сервера
+
+            - job_name: 'nginx_log_exporter'
+              static_configs:
+                - targets: 
+                    - '192.168.10.4:4040'  # IP первого веб-сервера
+                    - '192.168.20.34:4040'  # IP второго веб-сервера
+
+            - job_name: 'prometheus'
+              static_configs:
+                - targets: ['localhost:9090']
+
+          alerting:
+            alertmanagers:
+              - static_configs:
+                  - targets:
+                    - 'localhost:9093'
+        dest: /etc/prometheus/prometheus.yml
+        owner: prometheus
+        group: prometheus
+        mode: '0644'
+
+    - name: Создание systemd сервиса для Prometheus
+      copy:
+        content: |
+          [Unit]
+          Description=Prometheus
+          After=network.target
+
+          [Service]
+          User=prometheus
+          ExecStart=/usr/local/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/var/lib/prometheus/ --web.console.templates=/etc/prometheus/consoles --web.console.libraries=/etc/prometheus/console_libraries
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/prometheus.service
+        mode: '0644'
+
+    - name: Запуск и включение сервиса Prometheus
+      systemd:
+        name: prometheus
+        state: started
+        enabled: yes
+        daemon_reload: yes

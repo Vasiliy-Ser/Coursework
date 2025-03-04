@@ -1,0 +1,7 @@
+---
+- name: Install Elasticsearch from local .deb file
+  apt:
+    deb: "/tmp/elasticsearch-8.17.2-amd64.deb"
+    state: present
+  become: yes  # Требуются права суперпользователя для установки
+

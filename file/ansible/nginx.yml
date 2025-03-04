@@ -1,0 +1,39 @@
+---
+- name: Install and configure Nginx with custom welcome page
+  hosts: web_servers
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check if the custom welcome page exists
+      stat:
+        path: "/home/vm10/test/ans/index.html"
+      register: index_file
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: latest
+        update_cache: yes
+
+    - name: Ensure /var/www/html exists
+      file:
+        path: /var/www/html
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Copy custom welcome page to the Nginx directory
+      copy:
+        src: "/home/vm10/test/ans/index.html"
+        dest: "/var/www/html/index.html"
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    - name: Restart Nginx to apply configuration changes
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: yes
+

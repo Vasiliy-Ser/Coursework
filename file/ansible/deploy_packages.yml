@@ -1,0 +1,55 @@
+---
+- name: Deploy files to servers via Bastion Host
+  hosts: all
+  become: yes
+  vars:
+    bastion_host: "51.250.77.132"
+    bastion_user: "master"
+    local_files_path: "/home/vm10/"
+    remote_tmp_path: "/tmp/"
+    ansible_user: "master"
+  tasks:
+    - name: Copy filebeat to web server via SCP
+      when: "'web_servers' in group_names"
+      delegate_to: localhost
+      become: no
+      command: >
+        scp -J {{ bastion_user }}@{{ bastion_host }} 
+            {{ local_files_path }}filebeat-8.17.2-amd64.deb
+            {{ ansible_user }}@{{ inventory_hostname }}:{{ remote_tmp_path }}filebeat-8.17.2-amd64.deb
+
+    - name: Copy prometheus to prometheus server via SCP
+      when: "'prometheus' in group_names"
+      delegate_to: localhost
+      become: no
+      command: >
+        scp -J {{ bastion_user }}@{{ bastion_host }} 
+            {{ local_files_path }}prometheus-2.54.1.linux-amd64.tar.gz
+            {{ ansible_user }}@{{ inventory_hostname }}:{{ remote_tmp_path }}prometheus-2.54.1.linux-amd64.tar.gz
+
+    - name: Copy kibana to kibana server via SCP
+      when: "'kibana' in group_names"
+      delegate_to: localhost
+      become: no
+      command: >
+        scp -J {{ bastion_user }}@{{ bastion_host }} 
+            {{ local_files_path }}kibana-8.17.2-amd64.deb
+            {{ ansible_user }}@{{ inventory_hostname }}:{{ remote_tmp_path }}kibana-8.17.2-amd64.deb
+
+    - name: Copy grafana to grafana server via SCP
+      when: "'grafana' in group_names"
+      delegate_to: localhost
+      become: no
+      command: >
+        scp -J {{ bastion_user }}@{{ bastion_host }} 
+            {{ local_files_path }}grafana-enterprise_11.5.1_amd64.deb
+            {{ ansible_user }}@{{ inventory_hostname }}:{{ remote_tmp_path }}grafana-enterprise_11.5.1_amd64.deb
+
+    - name: Copy elasticsearch to elasticsearch server via SCP
+      when: "'elasticsearch' in group_names"
+      delegate_to: localhost
+      become: no
+      command: >
+        scp -J {{ bastion_user }}@{{ bastion_host }} 
+            {{ local_files_path }}elasticsearch-8.17.2-amd64.deb
+            {{ ansible_user }}@{{ inventory_hostname }}:{{ remote_tmp_path }}elasticsearch-8.17.2-amd64.deb

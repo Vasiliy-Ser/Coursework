@@ -1,0 +1,38 @@
+---
+- name: Включение stub_status на удаленных веб-серверах
+  hosts: web_servers  # Здесь укажите группу хостов, если она у вас есть
+  become: yes  # Для выполнения команд от имени root
+  tasks:
+    - name: Добавить конфигурацию stub_status после строки include /etc/nginx/sites-enabled/*
+      blockinfile:
+        path: /etc/nginx/nginx.conf
+        block: |
+          
+          server {
+              listen 127.0.0.1:8080;
+              server_name localhost;
+
+              location /nginx_status {
+                  stub_status on;
+                  access_log off;
+                  allow 0.0.0.0/0;  # Разрешаем доступ со всех адресов
+                  deny all;
+              }
+          }
+        insertafter: '^[ \t]*include /etc/nginx/sites-enabled/\*;'
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - stub_status"
+        create: yes 
+      notify: Перезагрузить Nginx
+
+    - name: Перезагрузить Nginx, чтобы применить изменения
+      systemd:
+        name: nginx
+        state: reloaded
+      when: ansible_facts.packages.nginx is defined
+
+  handlers:
+    - name: Перезагрузить Nginx
+      systemd:
+        name: nginx
+        state: reloaded
+

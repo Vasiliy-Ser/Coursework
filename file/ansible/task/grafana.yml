@@ -1,0 +1,30 @@
+---
+- name: Install dependencies for Grafana
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - adduser
+    - libfontconfig1
+    - musl
+  become: yes
+- name: Install Grafana Enterprise from local .deb package
+  apt:
+    deb: "/tmp/grafana-enterprise_11.5.1_amd64.deb"
+    state: present
+  become: yes
+
+- name: Fix broken dependencies after dpkg installation
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - libfontconfig1
+    - musl
+  become: yes
+- name: Enable and start Grafana service
+  systemd:
+    name: grafana-server
+    enabled: yes
+    state: started
+  become: yes

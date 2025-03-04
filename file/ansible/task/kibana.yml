@@ -1,0 +1,28 @@
+---
+- name: Install Kibana from local .deb file
+  apt:
+    deb: "/tmp/kibana-8.17.2-amd64.deb"
+    state: present
+  become: yes
+
+- name: Configure Kibana to connect to Elasticsearch
+  lineinfile:
+    path: "/etc/kibana/kibana.yml"
+    regexp: '^#?elasticsearch.hosts:'
+    line: "elasticsearch.hosts: [\"http://192.168.10.34:9200\"]"
+  become: yes
+
+- name: Configure Kibana Elasticsearch credentials
+  lineinfile:
+    path: "/etc/kibana/kibana.yml"
+    regexp: '^#?elasticsearch.username:'
+    line: "elasticsearch.username: \"elastic\""
+  become: yes
+
+- name: Enable and start Kibana service
+  systemd:
+    name: kibana
+    state: started
+    enabled: yes
+  become: yes
+

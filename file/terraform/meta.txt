@@ -1,0 +1,17 @@
+#cloud-config
+users:
+  - name: master
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh-authorized-keys:
+      - ssh-rsa <your key>
+
+package_update: true
+package_upgrade: true
+packages:
+  - openssh-server
+
+runcmd:
+  - systemctl enable ssh
+  - systemctl start ssh

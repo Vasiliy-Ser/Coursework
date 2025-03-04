@@ -1,0 +1,32 @@
+---
+- name: Setup web servers (Node Exporter, Nginx Log Exporter)
+  hosts: web_servers
+  become: yes
+  tasks:
+    - include_tasks: tasks/install_docker.yml
+    - include_tasks: tasks/deploy_exporters.yml
+
+- name: Setup Prometheus server
+  hosts: prometheus
+  become: yes
+  tasks:
+    - include_tasks: tasks/prometheus.yml
+
+- name: Setup Grafana server
+  hosts: grafana
+  become: yes
+  tasks:
+    - include_tasks: tasks/grafana.yml
+
+- name: Setup Elasticsearch
+  hosts: elasticsearch
+  become: yes
+  tasks: 
+    - include_tasks: tasks/elasticsearch.yml
+
+- name: Setup Kibana server
+  hosts: kibana
+  become: yes
+  tasks:
+    - include_tasks: tasks/kibana.yml
+

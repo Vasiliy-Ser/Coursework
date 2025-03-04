@@ -1,0 +1,86 @@
+# Установка Docker и Docker Compose на веб-серверах
+#osts: web_servers
+#№ecome: yes
+#№asks:
+
+  - name: Удаление старого пакета containerd (если установлен)
+    apt:
+      name: containerd
+      state: absent
+    ignore_errors: yes
+
+  - name: Установка зависимостей
+    apt:
+      name:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+        - jq  # Устанавливаем jq для парсинга JSON
+      state: present
+
+  - name: Добавление репозитория Docker и установка Docker
+    shell: curl -fsSL https://get.docker.com | sudo sh
+    args:
+      creates: /usr/bin/docker
+
+  - name: Запуск и включение Docker
+    systemd:
+      name: docker
+      state: started
+      enabled: yes
+
+  - name: Проверка версии Docker
+    command: docker --version
+    register: docker_version
+
+  - name: Вывод версии Docker
+    debug:
+      msg: "Docker version: {{ docker_version.stdout }}"
+
+  - name: Получение архитектуры системы
+    command: uname -m
+    register: system_architecture
+
+  - name: Логирование архитектуры системы
+    debug:
+      msg: "Система имеет архитектуру: {{ system_architecture.stdout }}"
+
+  - name: Установка Docker Compose (с учетом архитектуры)
+    shell: |
+      echo "Скачиваем Docker Compose для архитектуры {{ system_architecture.stdout }}..."
+      if [ "{{ system_architecture.stdout }}" = "x86_64" ]; then
+        if [ ! -f /usr/local/bin/docker-compose ]; then
+          sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | jq -r .tag_name)/docker-compose-$(uname -s)-{{ system_architecture.stdout }}" -o /usr/local/bin/docker-compose
+        else
+          echo "Docker Compose уже установлен."
+        fi
+      else
+        echo "Не поддерживаемая архитектура {{ system_architecture.stdout }}";
+        exit 1;
+      fi
+    args:
+      creates: /usr/local/bin/docker-compose
+
+  - name: Сделать Docker Compose исполнимым
+    become: true
+    file:
+      path: /usr/local/bin/docker-compose
+      mode: 'u+x'
+
+  - name: Проверка версии Docker Compose
+    become: true
+    command: /usr/local/bin/docker-compose --version
+    register: docker_compose_version
+
+  - name: Вывод версии Docker Compose
+    debug:
+      msg: "Docker Compose version: {{ docker_compose_version.stdout }}"
+
+  - name: Добавление пользователя в группу docker
+    user:
+      name: "{{ ansible_user }}"
+      group: docker
+      append: yes
+
+

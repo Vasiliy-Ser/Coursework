@@ -1,0 +1,24 @@
+---
+- name: Install and configure Filebeat on web servers
+  hosts: web_servers
+  become: yes
+  tasks:
+    - name: Install Filebeat package
+      apt:
+        deb: /tmp/filebeat-8.17.2-amd64.deb
+        state: present
+
+    - name: Configure Filebeat to send logs to Elasticsearch
+      template:
+        src: filebeat.yml.j2
+        dest: /etc/filebeat/filebeat.yml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Enable and start Filebeat service
+      service:
+        name: filebeat
+        enabled: yes
+        state: started
+

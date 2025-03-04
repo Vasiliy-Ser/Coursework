@@ -1,0 +1,26 @@
+---
+#- name: Deploy Node Exporter and Nginx Log Exporter using Docker Compose
+#  hosts: web_servers
+#  become: yes
+#  tasks:
+    - name: Create docker-compose.yml for exporters
+      copy:
+        dest: "/home/master/docker-compose.yml"
+        content: |
+          services:
+            node_exporter:
+              image: prom/node-exporter:v1.5.0
+              ports:
+                - "9100:9100"
+              restart: unless-stopped
+
+            nginx_log_exporter:
+              image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1
+              ports:
+                - "4040:4040"
+              volumes:
+                - "/var/log/nginx:/var/log/nginx"
+              restart: unless-stopped
+
+    - name: Start containers with Docker Compose
+      command: docker compose -f /home/master/docker-compose.yml up -d  # Используем команду без дефиса для Docker Compose v2
